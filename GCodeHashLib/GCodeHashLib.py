@@ -19,6 +19,7 @@ import os.stat, os.path
 
 class GCodeMD5Checksum:
     def __init__(self,  filename):
+        ValidateFileInput(filename)
         self.filename = filename
         
     def ApplySignature(self):
@@ -51,6 +52,7 @@ class GCodeMD5Checksum:
         
 class GCodeSHA256Checksum:
     def __init__(self,  filename):
+        ValidateFileInput(filename)
         self.filename = filename
         
     def ApplySignature(self):
