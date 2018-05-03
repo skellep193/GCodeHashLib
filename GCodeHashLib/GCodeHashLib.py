@@ -21,7 +21,7 @@
 #   1.0: Initial Release - 04/29/2018
 
 import hashlib
-import os.stat, os.path,  os.rename
+import os
 
 #   Author: Patrick Skelley, Jenny Chen
 #   Parent Class for algorithm specific hash classes
@@ -31,12 +31,13 @@ class GCodeChecksum:
     # Purpose: Verifies the hash embedded within the gcode file matches that of the hash generated against the file content
     def VerifySignature(self):
         with open(self.filename,  "r") as f:
-            firstLine = self.readline()
+            firstLine = f.readline()
             tokens = firstLine.split("=")
-            existingHash = tokens[1]
-            hashAlg = tokens[2]
+            #print(tokens)
+            existingHash = tokens[1].rstrip()
+            hashAlg = tokens[0]
             
-        if hashAlg.endwith("MD5"):
+        if hashAlg.endswith("MD5"):
             hashOp = hashlib.md5()
         elif hashAlg.endswith("SHA256"):
             hashOp = hashlib.sha256()
@@ -50,7 +51,8 @@ class GCodeChecksum:
           
             for block in iter(lambda: f.read(4096), b""):
                 hashOp.update(block)
-                hash = hashOp.hexdigest()
+            hash = hashOp.hexdigest()
+            #print(hash)
         return(hash==existingHash)
 
     # Author: Jenny Chen
@@ -81,12 +83,13 @@ class GCodeMD5Checksum(GCodeChecksum):
         
         with open(self.filename, "r+",encoding='utf-8') as f:
             contents = f.readlines()
-            print(contents)
             contents.insert(0,";GCODEHASHLIB_MD5=" + hash + "\n") 
             
-        with open(os.rename(self.filename, self.filename + "_MD5"),  "w",encoding='utf-8') as f:
+        with open("MD5_" + self.filename,  "w") as f:
             f.writelines(contents)
-
+        
+        return hash
+        
 #   Author: Patrick Skelley
 #   Purpose: Class for generating and embedding SHA256 checksum in g-code files
 class GCodeSHA256Checksum(GCodeChecksum):
@@ -105,8 +108,9 @@ class GCodeSHA256Checksum(GCodeChecksum):
         
         with open(self.filename, "r+",encoding='utf-8') as f:
             contents = f.readlines()
-            print(contents)
             contents.insert(0,";GCODEHASHLIB_SHA256=" + hash + "\n") 
             
-        with open(os.rename(self.filename, self.filename + "_SHA256"),  "w",encoding='utf-8') as f:
+        with open("SHA256_" + self.filename,  "w") as f:
             f.writelines(contents)
+
+        return hash
